@@ -41,6 +41,31 @@ int allPins[] = [0, 1, 2, 3, 38, 39, 40, 41, 42,43, 22, 23, 24, 25];
  * you can declare any global variable you might need below
  */
 
+
+//                                Linear Potentiometer Variables
+ // Initializing Variables
+// variables that are used once in the program
+float t = 2000; // milliseconds to wait for recalibration 
+int d = 800; // delays the output by milliseconds
+float L = 1.25; // Half length of the POT in inches, use as a means to change the Outputs to in,mm,m,etc.
+float V = 511.5; // Half length of the POT arduino output
+
+// variables for each individual pin
+int a = 0; // variable used to read from analog input
+int b = 1; // variable used to read from analog input
+
+// variables used for manipulating data
+float x = 0; // Output Variable that will have to be converted to desired measurement
+float u = 0; // Output Variable that will have to be converted to desired measurement
+float y = 0; // Converted desired Output Variable
+float m = 0; // Converted desired Output Variable
+float z = 0; // the constant analog output for 5 seconds, is used to recalibrate the sensor
+float h = 0; // the constant analog output for 5 seconds, is used to recalibrate the sensor
+
+
+
+
+
 // I2C address of MPU-6050 for accelerometer
 const int MPU_addr = 0x68;
 // keep track of elapsed time in seconds
@@ -85,6 +110,18 @@ void hall_effect(){
 
 void linear_potentiometer(){
   // pins: allPins[0], allPins[1], allPins[2], allPins[3]
+    // the following code does the recalibration and outputs the displacement of the sensor
+  while(millis() < t){
+    z = analogRead(a); // this runs once and is used to record the constant value of z for recalibration
+    h = analogRead(b); // this runs once and is used to record the constant value of h for recalibration
+  }
+  x = analogRead(a); // reads from pin a, and outputs x
+  u = analogRead(b); // reads from pin b, and outputs u
+  y = (x - z)*(L/V);
+  m = (u - h)*(L/V);
+  Serial.print(y);  
+  Serial.println(m);
+    delay(d); // delays outputs by 100 milli seconds
 }
 
 void steering_angle(){

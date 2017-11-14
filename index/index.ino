@@ -12,7 +12,7 @@
  * * Linear Potentiometers: A0 - A3
  * * Hall Effect:           D38 - D41
  * * Steering Angle:        D42
- * * Brake Pedal:           D43
+ * * Brake Pedal:           D43 
  * * Tire Temperature:      D22 - D25
  * 
  * Created Oct. 22, 2017
@@ -27,6 +27,14 @@
  */
 
 /*
+ * TODO LIST:
+ * 
+ * * Program start trigger
+ * * Lap split with GPS
+ * * Power source distribution
+ */
+ 
+/*
  * external libraries
  */
 #include<Wire.h>
@@ -35,7 +43,7 @@
 /*
  * this array holds the pin number for all components
  */
-int allPins[] = [0, 1, 2, 3, 38, 39, 40, 41, 42,43, 22, 23, 24, 25];
+int allPins[] = {0, 1, 2, 3, 38, 39, 40, 41, 42,43, 22, 23, 24, 25};
 
 /*
  * you can declare any global variable you might need below
@@ -73,6 +81,13 @@ unsigned long elapsedTime;
 // SD Card pin
 const int cardPin = 53;
 
+/*
+ * variables for holding data
+ */
+ 
+// this array holds the data for accelerometer and it's used by accelerometer()
+int16_t accelerometer_data[3];
+
 void setup() {
   Serial.begin(115200);
   Wire.begin();
@@ -87,7 +102,7 @@ void setup() {
   }
   
 //  record time and date
-  String programStart = current_date + " - " current_time();
+  String programStart = current_date() + " - " + current_time();
 
 //  GPS setup
 
@@ -98,6 +113,7 @@ void setup() {
 // the loop function runs over and over again forever
 void loop() {
   elapsedTime =  millis() - elapsedTime;
+  Serial.print(elapsedTime);
 }
 
 void gps(){
@@ -160,7 +176,7 @@ void setup_MPU(){
   Wire.endTransmission(); 
 }
 
-int16_t[] accelerometer(){
+void accelerometer(int16_t accelerometer_data[]){
   Wire.beginTransmission(MPU_addr);
   // starting with register 0x3B (ACCEL_XOUT_H)
   Wire.write(0x3B);
@@ -168,14 +184,12 @@ int16_t[] accelerometer(){
   // request a total of 14 registers
   Wire.requestFrom(MPU_addr,14,true);  
   
-  // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)     
-  int16_t X_axis = Wire.read()<<8|Wire.read();  
-  // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
-  int16_t Y_axis = Wire.read()<<8|Wire.read();  
-  // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
-  int16_t Z_axis = Wire.read()<<8|Wire.read();  
-
-  return [X_axis, Y_axis, Z_axis];
+  // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L) X_AXIS
+  accelerometer_data[0] = Wire.read()<<8|Wire.read();  
+  // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L) Y_AXIS
+  accelerometer_data[1] = Wire.read()<<8|Wire.read();  
+  // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L) Z_AXIS
+  accelerometer_data[2] = Wire.read()<<8|Wire.read();  
 }
 
 String current_date(){
